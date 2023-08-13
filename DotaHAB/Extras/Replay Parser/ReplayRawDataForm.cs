@@ -369,7 +369,7 @@ namespace DotaHIT.Extras.Replay_Parser
                                 if (playerId < 20)
                                 {
                                     PlayerPauses[playerId]++;
-                                    if (PlayerPauses[playerId] > 3 && PlayerPauses[playerId] < 5)
+                                    if (PlayerPauses[playerId] > 4 && PlayerPauses[playerId] < 20)
                                     {
                                         if (ForceScanner && IsRealGame())
                                         {
