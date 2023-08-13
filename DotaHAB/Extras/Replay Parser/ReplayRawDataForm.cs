@@ -90,7 +90,7 @@ namespace DotaHIT.Extras.Replay_Parser
         private int[] PlayerPauses = new int[20];
         private int[] PlayerPings = new int[20];
         private int[] PlayerPingsTime = new int[20];
-
+        private bool DropHackFound = false;
         void InitActions()
         {
             actionList.Clear();
@@ -99,6 +99,13 @@ namespace DotaHIT.Extras.Replay_Parser
             Array.Clear(PlayerPauses, 0, PlayerPauses.Length);
             Array.Clear(PlayerPings, 0, PlayerPings.Length);
             Array.Clear(PlayerPingsTime, 0, PlayerPingsTime.Length);
+            DropHackFound = false;
+
+            try
+            {
+                File.Delete(replay.FileName + "_detects.log");
+            }
+            catch { }
 
             if (string.IsNullOrEmpty(replay.FileName))
                 return;
@@ -424,6 +431,7 @@ namespace DotaHIT.Extras.Replay_Parser
 
                                 if (ForceScanner && IsRealGame())
                                 {
+                                    DropHackFound = true;
                                     File.AppendAllText(replay.FileName + "_detects.log", "~[" + player.Name + "]~[" + "DROP HACK" + "]~[TIME:" + MillisecondsToTimeString(time) + "]~[PATH:" + realstr + "]\n");
                                 }
                                 actionList.Add(new Action(time, player, actionId));
@@ -434,7 +442,7 @@ namespace DotaHIT.Extras.Replay_Parser
                                 actionList.Add(new Action(time, player, actionId));
                                 reader.ReadInt32();
                                 prest -= 5;
-                                if (ForceScanner && IsRealGame())
+                                if (ForceScanner && IsRealGame() && !DropHackFound)
                                 {
                                     File.AppendAllText(replay.FileName + "_detects.log", "~[" + player.Name + "]~[" + "DROP HACK" + "]~[TIME:" + MillisecondsToTimeString(time) + "]\n");
                                 }
@@ -714,9 +722,9 @@ namespace DotaHIT.Extras.Replay_Parser
                                 {
 
                                 }
-                                if (ForceScanner && IsRealGame())
+                                if (ForceScanner && IsRealGame() && gold > 0)
                                 {
-                                    File.AppendAllText(replay.FileName + "_detects.log", "~[" + player.Name + "]~[" + "TRANSFER RESOURCES TO:" + othername + "]~[TIME:" + MillisecondsToTimeString(time) + "]\n");
+                                    File.AppendAllText(replay.FileName + "_detects.log", "~[" + player.Name + "]~[" + "TRANSFER" + gold + "GOLD TO:" + othername + "]~[TIME:" + MillisecondsToTimeString(time) + "]\n");
                                 }
                                 actionList.Add(new Action(time, player, actionId, slotNo, gold, lumber));
                                 break;
