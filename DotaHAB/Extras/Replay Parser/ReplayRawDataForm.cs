@@ -724,7 +724,7 @@ namespace DotaHIT.Extras.Replay_Parser
                                 }
                                 if (ForceScanner && IsRealGame() && gold > 0)
                                 {
-                                    File.AppendAllText(replay.FileName + "_detects.log", "~[" + player.Name + "]~[" + "TRANSFER" + gold + "GOLD TO:" + othername + "]~[TIME:" + MillisecondsToTimeString(time) + "]\n");
+                                    File.AppendAllText(replay.FileName + "_detects.log", "~[" + player.Name + "]~[" + "TRANSFER " + gold + "GOLD TO:" + othername + "]~[TIME:" + MillisecondsToTimeString(time) + "]\n");
                                 }
                                 actionList.Add(new Action(time, player, actionId, slotNo, gold, lumber));
                                 break;
