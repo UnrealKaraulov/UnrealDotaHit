@@ -1,0 +1,600 @@
+﻿<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003" ToolsVersion="12.0">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProductVersion>9.0.21022</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{6DF82407-942B-4B06-9D60-070225917CA7}</ProjectGuid>
+    <OutputType>WinExe</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>DotaHIT</RootNamespace>
+    <AssemblyName>DotaHIT</AssemblyName>
+    <ApplicationIcon>Resources\Icon.ico</ApplicationIcon>
+    <StartupObject>DotaHIT.Program</StartupObject>
+    <SignManifests>false</SignManifests>
+    <SignAssembly>false</SignAssembly>
+    <SccProjectName>
+    </SccProjectName>
+    <SccLocalPath>
+    </SccLocalPath>
+    <SccAuxPath>
+    </SccAuxPath>
+    <SccProvider>
+    </SccProvider>
+    <FileUpgradeFlags>
+    </FileUpgradeFlags>
+    <OldToolsVersion>3.5</OldToolsVersion>
+    <ApplicationRevision>0</ApplicationRevision>
+    <UpgradeBackupLocation>
+    </UpgradeBackupLocation>
+    <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
+    <TargetFrameworkProfile />
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>TRACE;DEBUG;_x86_</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <UseVSHostingProcess>false</UseVSHostingProcess>
+    <PlatformTarget>x86</PlatformTarget>
+    <Prefer32Bit>false</Prefer32Bit>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE;_x86_</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <PlatformTarget>x86</PlatformTarget>
+    <Prefer32Bit>false</Prefer32Bit>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="Accessibility" />
+    <Reference Include="System" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Deployment" />
+    <Reference Include="System.Design" />
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.Management" />
+    <Reference Include="System.Windows.Forms" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="AboutForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="AboutForm.Designer.cs">
+      <DependentUpon>AboutForm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="ControlBar\ActionsForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="ControlBar\ActionsForm.Designer.cs">
+      <DependentUpon>ActionsForm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="ControlBar\ControlBarForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="ControlBar\ControlBarForm.Designer.cs">
+      <DependentUpon>ControlBarForm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="ControlBar\UnitsForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="ControlBar\UnitsForm.Designer.cs">
+      <DependentUpon>UnitsForm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Core.Compression.cs" />
+    <Compile Include="Core.Resources.cs" />
+    <Compile Include="CSharp Libraries\SortableBindingList\PropertyComparer.cs" />
+    <Compile Include="CSharp Libraries\SortableBindingList\SortableBindingList.cs" />
+    <Compile Include="CSharp Libraries\TgaLoader\TgaLoader.cs" />
+    <Compile Include="CSharp Libraries\W3gParser\ChatInfo.cs" />
+    <Compile Include="CSharp Libraries\W3gParser\UnitInfo.cs" />
+    <Compile Include="CSharp Libraries\W3gParser\PickInfo.cs" />
+    <Compile Include="CSharp Libraries\W3gParser\OrderInfo.cs" />
+    <Compile Include="CSharp Libraries\W3gParser\ParseSettings.cs" />
+    <Compile Include="CSharp Libraries\W3gParser\Inventory.cs" />
+    <Compile Include="Extras\Replay Parser\BBCodeSettingsForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Extras\Replay Parser\BBCodeSettingsForm.Designer.cs">
+      <DependentUpon>BBCodeSettingsForm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Extras\Replay Parser\BansPicksForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Extras\Replay Parser\BansPicksForm.Designer.cs">
+      <DependentUpon>BansPicksForm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="CSharp Libraries\W3gParser\IPlayer.cs" />
+    <Compile Include="CSharp Libraries\W3gParser\IReplay.cs" />
+    <Compile Include="Extras\Replay Parser\ReplayStatistics.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Extras\Replay Parser\ReplayStatistics.Designer.cs">
+      <DependentUpon>ReplayStatistics.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Extras\Replay Parser\ReplayParserCore.cs" />
+    <Compile Include="Extras\Replay Parser\ReplayStatisticsSpecificPlayerView.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="Extras\Replay Parser\ReplayStatisticsSpecificPlayerView.Designer.cs">
+      <DependentUpon>ReplayStatisticsSpecificPlayerView.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Extras\Replay Parser\ReplayStatsCache.cs" />
+    <Compile Include="Extras\Replay Parser\ReplayStats.cs" />
+    <Compile Include="Extras\Replay Parser\ReplayMapCache.Database.cs" />
+    <Compile Include="Extras\Replay Parser\ReplayDataExtractForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Extras\Replay Parser\ReplayDataExtractForm.Designer.cs">
+      <DependentUpon>ReplayDataExtractForm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Extras\Replay Parser\ReplayFinder.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Extras\Replay Parser\ReplayFinder.Designer.cs">
+      <DependentUpon>ReplayFinder.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Extras\Replay Parser\ReplayMapCache.cs" />
+    <Compile Include="Extras\Replay Parser\ReplayRawDataForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Extras\Replay Parser\ReplayRawDataForm.Designer.cs">
+      <DependentUpon>ReplayRawDataForm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="MainForm.Interface.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="CSharp Libraries\Bitmap Filters\Filters.cs" />
+    <Compile Include="CSharp Libraries\NRtfTree\InfoGroup.cs" />
+    <Compile Include="CSharp Libraries\NRtfTree\RtfColorTable.cs" />
+    <Compile Include="CSharp Libraries\NRtfTree\RtfDocument.cs" />
+    <Compile Include="CSharp Libraries\NRtfTree\RtfFontTable.cs" />
+    <Compile Include="CSharp Libraries\NRtfTree\RtfLex.cs" />
+    <Compile Include="CSharp Libraries\NRtfTree\RtfNodeCollection.cs" />
+    <Compile Include="CSharp Libraries\NRtfTree\RtfNodeType.cs" />
+    <Compile Include="CSharp Libraries\NRtfTree\RtfTextFormat.cs" />
+    <Compile Include="CSharp Libraries\NRtfTree\RtfToken.cs" />
+    <Compile Include="CSharp Libraries\NRtfTree\RtfTokenType.cs" />
+    <Compile Include="CSharp Libraries\NRtfTree\RtfTree.cs" />
+    <Compile Include="CSharp Libraries\NRtfTree\RtfTreeNode.cs" />
+    <Compile Include="CSharp Libraries\NRtfTree\SarParser.cs" />
+    <Compile Include="CSharp Libraries\SharpZibLib\DanatCompileFix.cs" />
+    <Compile Include="CSharp Libraries\W3gParser\AIStrength.cs" />
+    <Compile Include="CSharp Libraries\W3gParser\KillInfo.cs" />
+    <Compile Include="CSharp Libraries\W3gParser\ChineseItemString.cs" />
+    <Compile Include="CSharp Libraries\W3gParser\GameColor.cs" />
+    <Compile Include="CSharp Libraries\W3gParser\GameSettings.cs" />
+    <Compile Include="CSharp Libraries\W3gParser\GameType.cs" />
+    <Compile Include="CSharp Libraries\W3gParser\Groups.cs" />
+    <Compile Include="CSharp Libraries\W3gParser\Hero.cs" />
+    <Compile Include="CSharp Libraries\W3gParser\Heroes.cs" />
+    <Compile Include="CSharp Libraries\W3gParser\Items.cs" />
+    <Compile Include="CSharp Libraries\W3gParser\ItemType.cs" />
+    <Compile Include="CSharp Libraries\W3gParser\LineUp.cs" />
+    <Compile Include="CSharp Libraries\W3gParser\MapInfo.cs" />
+    <Compile Include="CSharp Libraries\W3gParser\OrderItem.cs" />
+    <Compile Include="CSharp Libraries\W3gParser\ParserUtility.cs" />
+    <Compile Include="CSharp Libraries\W3gParser\Player.cs" />
+    <Compile Include="CSharp Libraries\W3gParser\PlayerAction.cs" />
+    <Compile Include="CSharp Libraries\W3gParser\PlayerState.cs" />
+    <Compile Include="CSharp Libraries\W3gParser\Race.cs" />
+    <Compile Include="CSharp Libraries\W3gParser\Replay.cs" />
+    <Compile Include="CSharp Libraries\W3gParser\TalkTo.cs" />
+    <Compile Include="CSharp Libraries\W3gParser\Team.cs" />
+    <Compile Include="CSharp Libraries\W3gParser\TeamType.cs" />
+    <Compile Include="CSharp Libraries\W3gParser\Units.cs" />
+    <Compile Include="CSharp Libraries\W3gParser\W3gParserException.cs" />
+    <Compile Include="DatabaseModel\_Format.cs" />
+    <Compile Include="DatabaseModel\_Upgrades.cs" />
+    <Compile Include="DatabaseModel\_Abilities.cs" />
+    <Compile Include="DatabaseModel\_Environment.cs" />
+    <Compile Include="DatabaseModel\_DataTypes.cs" />
+    <Compile Include="DatabaseModel\Data\Record.cs" />
+    <Compile Include="DatabaseModel\Data\Field.cs" />
+    <Compile Include="DatabaseModel\Data\FieldAttributes.cs" />
+    <Compile Include="DatabaseModel\Data\Enums.cs" />
+    <Compile Include="MainForm.DialogBoxWrapper.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Dialogs\FolderBrowserForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Dialogs\FolderBrowserForm.Designer.cs">
+      <DependentUpon>FolderBrowserForm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Explorer Control\ExpTreeSharpLib\CProcDataObject.cs" />
+    <Compile Include="Explorer Control\ExpTreeSharpLib\CShItem.cs" />
+    <Compile Include="Explorer Control\ExpTreeSharpLib\ExpTree.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="Explorer Control\ExpTreeSharpLib\ShellDll.cs" />
+    <Compile Include="Explorer Control\ExpTreeSharpLib\SystemImageListManager.cs" />
+    <Compile Include="Explorer Control\ExpTreeSharpLib\TVDragWrapper.cs" />
+    <Compile Include="Dialogs\FileBrowserForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Dialogs\FileBrowserForm.Designer.cs">
+      <DependentUpon>FileBrowserForm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Extras\CustomKeysForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Extras\CustomKeysForm.Designer.cs">
+      <DependentUpon>CustomKeysForm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Extras\DataDumpForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Extras\DataDumpForm.Designer.cs">
+      <DependentUpon>DataDumpForm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="CSharp Libraries\FileExtension\FileExtensionWrapper.cs" />
+    <Compile Include="Explorer Control\FileBrowser.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="Explorer Control\FileBrowser.Designer.cs">
+      <DependentUpon>FileBrowser.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Extras\ImageDumpForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Extras\ImageDumpForm.Designer.cs">
+      <DependentUpon>ImageDumpForm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Extras\Replay Parser\HeroBuildView.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="Extras\Replay Parser\HeroBuildView.Designer.cs">
+      <DependentUpon>HeroBuildView.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Extras\Replay Parser\HeroTagListForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Extras\Replay Parser\HeroTagListForm.Designer.cs">
+      <DependentUpon>HeroTagListForm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Extras\Replay Parser\ReplayBrowserForm.Replay.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Extras\Replay Parser\ReplayBrowserForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Extras\Replay Parser\ReplayBrowserForm.Designer.cs">
+      <DependentUpon>ReplayBrowserForm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Jass\DHJassGlobalClock.cs" />
+    <Compile Include="Jass\_Commands.cs" />
+    <Compile Include="Jass\Native\_Constants.cs" />
+    <Compile Include="Jass\Native\DbJassNativeKnowledge.cs" />
+    <Compile Include="Jass\Native\_Events.cs" />
+    <Compile Include="Jass\_Operations.cs" />
+    <Compile Include="Jass\DHJassHandleEngine.cs" />
+    <Compile Include="Jass\DHJassExecutor.cs" />
+    <Compile Include="Jass\DHJassSyntax.cs" />
+    <Compile Include="Jass\DHJassCompiler.cs" />
+    <Compile Include="Jass\_Types.cs" />
+    <Compile Include="Jass\Native\_Functions.cs" />
+    <Compile Include="Jass\Native\_Types.cs" />
+    <Compile Include="Release.cs" />
+    <Compile Include="PropertiesForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="PropertiesForm.Designer.cs">
+      <DependentUpon>PropertiesForm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="ToolTips\ItemToolTipForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="ToolTips\ItemToolTipForm.Designer.cs">
+      <DependentUpon>ItemToolTipForm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Core.cs">
+    </Compile>
+    <Compile Include="MainForm.General.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Misc\BlpLib.cs" />
+    <Compile Include="Jass\Jass.cs" />
+    <Compile Include="Lists\ItemListForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Lists\ItemListForm.Designer.cs">
+      <DependentUpon>ItemListForm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Lists\FloatingListForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Lists\HeroListForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Lists\HeroListForm.Designer.cs">
+      <DependentUpon>HeroListForm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="ControlBar\LogForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="ControlBar\LogForm.Designer.cs">
+      <DependentUpon>LogForm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="MainForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="MainForm.Designer.cs">
+      <DependentUpon>MainForm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="MainForm.MpqLoad.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="MpqPath.cs" />
+    <Compile Include="Misc\PerfCounter.cs" />
+    <Compile Include="Plugins\Plugins.cs" />
+    <Compile Include="Program.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <EmbeddedResource Include="AboutForm.resx">
+      <SubType>Designer</SubType>
+      <DependentUpon>AboutForm.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="ControlBar\ActionsForm.resx">
+      <DependentUpon>ActionsForm.cs</DependentUpon>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <EmbeddedResource Include="ControlBar\ControlBarForm.resx">
+      <DependentUpon>ControlBarForm.cs</DependentUpon>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <EmbeddedResource Include="ControlBar\UnitsForm.resx">
+      <DependentUpon>UnitsForm.cs</DependentUpon>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Dialogs\FolderBrowserForm.resx">
+      <DependentUpon>FolderBrowserForm.cs</DependentUpon>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Explorer Control\ExpTreeSharpLib\ExpTree.resx">
+      <DependentUpon>ExpTree.cs</DependentUpon>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Dialogs\FileBrowserForm.resx">
+      <SubType>Designer</SubType>
+      <DependentUpon>FileBrowserForm.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Extras\CustomKeysForm.resx">
+      <DependentUpon>CustomKeysForm.cs</DependentUpon>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Extras\DataDumpForm.resx">
+      <DependentUpon>DataDumpForm.cs</DependentUpon>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Explorer Control\FileBrowser.resx">
+      <SubType>Designer</SubType>
+      <DependentUpon>FileBrowser.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Extras\ImageDumpForm.resx">
+      <DependentUpon>ImageDumpForm.cs</DependentUpon>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Extras\Replay Parser\BBCodeSettingsForm.resx">
+      <DependentUpon>BBCodeSettingsForm.cs</DependentUpon>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Extras\Replay Parser\BansPicksForm.resx">
+      <DependentUpon>BansPicksForm.cs</DependentUpon>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Extras\Replay Parser\ReplayStatistics.resx">
+      <DependentUpon>ReplayStatistics.cs</DependentUpon>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Extras\Replay Parser\HeroBuildView.resx">
+      <SubType>Designer</SubType>
+      <DependentUpon>HeroBuildView.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Extras\Replay Parser\HeroTagListForm.resx">
+      <SubType>Designer</SubType>
+      <DependentUpon>HeroTagListForm.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Extras\Replay Parser\ReplayBrowserForm.resx">
+      <SubType>Designer</SubType>
+      <DependentUpon>ReplayBrowserForm.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Extras\Replay Parser\ReplayDataExtractForm.resx">
+      <SubType>Designer</SubType>
+      <DependentUpon>ReplayDataExtractForm.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Extras\Replay Parser\ReplayFinder.resx">
+      <SubType>Designer</SubType>
+      <DependentUpon>ReplayFinder.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Extras\Replay Parser\ReplayRawDataForm.resx">
+      <SubType>Designer</SubType>
+      <DependentUpon>ReplayRawDataForm.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Extras\Replay Parser\ReplayStatisticsSpecificPlayerView.resx">
+      <DependentUpon>ReplayStatisticsSpecificPlayerView.cs</DependentUpon>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <EmbeddedResource Include="PropertiesForm.resx">
+      <SubType>Designer</SubType>
+      <DependentUpon>PropertiesForm.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="ToolTips\ItemToolTipForm.resx">
+      <DependentUpon>ItemToolTipForm.cs</DependentUpon>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Lists\ItemListForm.resx">
+      <DependentUpon>ItemListForm.cs</DependentUpon>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Lists\HeroListForm.resx">
+      <SubType>Designer</SubType>
+      <DependentUpon>HeroListForm.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="ControlBar\LogForm.resx">
+      <DependentUpon>LogForm.cs</DependentUpon>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <EmbeddedResource Include="MainForm.resx">
+      <SubType>Designer</SubType>
+      <DependentUpon>MainForm.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Properties\Resources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <EmbeddedResource Include="SettingsForm.resx">
+      <DependentUpon>SettingsForm.cs</DependentUpon>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <EmbeddedResource Include="SplashScreen.resx">
+      <SubType>Designer</SubType>
+      <DependentUpon>SplashScreen.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="ToolTips\ToolTipForm.resx">
+      <SubType>Designer</SubType>
+      <DependentUpon>ToolTipForm.cs</DependentUpon>
+    </EmbeddedResource>
+    <Compile Include="Properties\Resources.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Resources.resx</DependentUpon>
+      <DesignTime>True</DesignTime>
+    </Compile>
+    <Compile Include="CSharp Libraries\SCSharp.Mpq\BitStream.cs" />
+    <Compile Include="CSharp Libraries\SCSharp.Mpq\Mpq.cs" />
+    <Compile Include="CSharp Libraries\SCSharp.Mpq\MpqArchive.cs" />
+    <Compile Include="CSharp Libraries\SCSharp.Mpq\MpqHuffman.cs" />
+    <Compile Include="CSharp Libraries\SCSharp.Mpq\MpqParserException.cs" />
+    <Compile Include="CSharp Libraries\SCSharp.Mpq\MpqStream.cs" />
+    <Compile Include="CSharp Libraries\SCSharp.Mpq\MpqStructs.cs" />
+    <Compile Include="CSharp Libraries\SCSharp.Mpq\MpqWavCompression.cs" />
+    <Compile Include="CSharp Libraries\SCSharp.Mpq\PKLibDecompress.cs" />
+    <Compile Include="SettingsForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="SettingsForm.Designer.cs">
+      <DependentUpon>SettingsForm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="CSharp Libraries\SharpZibLib\Checksums\Adler32.cs" />
+    <Compile Include="CSharp Libraries\SharpZibLib\Checksums\IChecksum.cs" />
+    <Compile Include="CSharp Libraries\SharpZibLib\SharpZipBaseException.cs" />
+    <Compile Include="CSharp Libraries\SharpZibLib\Zip\Compression\DeflaterConstants.cs" />
+    <Compile Include="CSharp Libraries\SharpZibLib\Zip\Compression\Inflater.cs" />
+    <Compile Include="CSharp Libraries\SharpZibLib\Zip\Compression\InflaterDynHeader.cs" />
+    <Compile Include="CSharp Libraries\SharpZibLib\Zip\Compression\InflaterHuffmanTree.cs" />
+    <Compile Include="CSharp Libraries\SharpZibLib\Zip\Compression\Streams\InflaterInputStream.cs" />
+    <Compile Include="CSharp Libraries\SharpZibLib\Zip\Compression\Streams\OutputWindow.cs" />
+    <Compile Include="CSharp Libraries\SharpZibLib\Zip\Compression\Streams\StreamManipulator.cs" />
+    <Compile Include="CSharp Libraries\SharpZibLib\Zip\ZipConstants.cs" />
+    <Compile Include="CSharp Libraries\SharpZibLib\Zip\ZipException.cs" />
+    <Compile Include="Misc\SoundPlayerEx.cs" />
+    <Compile Include="SplashScreen.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="SplashScreen.Designer.cs">
+      <DependentUpon>SplashScreen.cs</DependentUpon>
+    </Compile>
+    <Compile Include="ToolTips\ToolTipForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="ToolTips\ToolTipForm.Designer.cs">
+      <DependentUpon>ToolTipForm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Misc\Win32Msg.cs" />
+    <Compile Include="UnitStatsCalculator.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="app.config" />
+    <None Include="Resources\armor.gif" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\damage.gif" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\prim_attr_agi.gif" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\right.gif" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\left.gif" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\top.gif" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\bot.gif" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\top-right.gif" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\top-left.gif" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\bot-left.gif" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\bot-right.gif" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\prim_attr_str.gif" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\prim_attr_int.gif" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\HeroBuild.ico" />
+    <None Include="Resources\exp_bar.gif" />
+    <None Include="Resources\BTNSkillz.gif" />
+    <None Include="Resources\battle.gif" />
+    <None Include="Resources\manacost.gif" />
+    <None Include="Resources\goldcost.gif" />
+    <None Include="Resources\DOWNarrow.gif" />
+    <None Include="Resources\UParrow.gif" />
+    <None Include="Resources\sight.gif" />
+    <None Include="Resources\radar.gif" />
+    <None Include="Resources\avatar.gif" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Icon.ico" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\GoToParentFolder.bmp" />
+    <None Include="Resources\GoToParentFolderHS.png" />
+    <None Include="Resources\defaultInfoBox.gif" />
+    <None Include="Resources\defaultMainPanel.gif" />
+    <None Include="Resources\defaultSkillTable.gif" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="bin\Debug\dhhelp.chm" />
+    <None Include="bin\Release\dhhelp.chm" />
+    <None Include="Properties\DataSources\Deerchao.War3Share.W3gParser.IReplay.datasource" />
+    <None Include="Properties\DataSources\DotaHIT.Extras.Replay_Parser.ReplayRawDataForm+Action.datasource" />
+    <None Include="Properties\DataSources\DotaHIT.Extras.Replay_Parser.ReplayStatistics+HeroStatistics.datasource" />
+    <None Include="Properties\DataSources\DotaHIT.Extras.Replay_Parser.ReplayStatistics+PlayerStatistics.datasource" />
+    <None Include="Resources\Control_Sound.gif" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="bin\Debug\libblp.dll" />
+    <Content Include="bin\Release\changelog.txt" />
+    <Content Include="bin\Release\libblp.dll" />
+  </ItemGroup>
+  <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>
