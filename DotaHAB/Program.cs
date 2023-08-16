@@ -37,7 +37,6 @@ namespace DotaHIT
 
             bool cacheOk = replay.MapCache.LoadFromFile(ReplayParserCore.CachePath + "\\" + mapFilename + ".dha", mapPath);
 
-
             if (cacheOk)
             {
                 sw.Stop(); Console.WriteLine("MapCacheLoad: " + ((float)sw.ElapsedMilliseconds / (float)1000.0));
@@ -46,9 +45,9 @@ namespace DotaHIT
             }
             else
             {
-                if (mapFilename.ToLower().Contains("dota"))
+                if (mapFilename.ToLower().Contains("v6.83s") || mapFilename.ToLower().Contains("iccup"))
                 {
-                    cacheOk = replay.MapCache.LoadFromFile(ReplayParserCore.CachePath + "\\dota.dha", mapPath);
+                    cacheOk = replay.MapCache.LoadFromFile(ReplayParserCore.CachePath + "\\dota.dha", ReplayParserCore.CachePath + "\\dota.w3x");
                     if (cacheOk)
                     {
                         sw.Stop(); Console.WriteLine("MapCacheLoad: " + ((float)sw.ElapsedMilliseconds / (float)1000.0));
@@ -82,16 +81,37 @@ namespace DotaHIT
 
             if (!File.Exists(mapPath))
             {
-                DialogResult dr = MessageBox.Show("The map for this replay ('" + mapPath + "') was not found." +
-                    "\nIf this map is located somewhere else, you can open it manually if you press 'Yes'." +
-                    "\nNote that if you don't have the required map you can open other DotA map which version is the closest to required (to avoid bugs)." +
-                    "\nPressing 'No' will not stop the parsing process, but the information on heroes and items will not be present (only player names and chatlog)." +
-                    "\nDo you want to manually specify the map file?", "Map file was not found", MessageBoxButtons.YesNo);
+                cacheOk = replay.MapCache.LoadFromFile(ReplayParserCore.CachePath + "\\" + mapFilename + ".dha", mapPath);
 
-                if (dr == DialogResult.Yes)
-                    mlSettings.Filename = null;
-                else
+                if (cacheOk)
+                {
                     return;
+                }
+                else
+                {
+                    if (mapFilename.ToLower().Contains("v6.83s") || mapFilename.ToLower().Contains("iccup"))
+                    {
+                        cacheOk = replay.MapCache.LoadFromFile(ReplayParserCore.CachePath + "\\dota.dha", ReplayParserCore.CachePath + "\\dota.w3x");
+                        if (cacheOk)
+                        {
+                            replay.MapCache.SaveToFile(ReplayParserCore.CachePath + "\\" + mapFilename + ".dha");
+                            return;
+                        }
+                        else
+                        {
+                            DialogResult dr = MessageBox.Show("The map for this replay ('" + mapPath + "') was not found 4." +
+                                "\nIf this map is located somewhere else, you can open it manually if you press 'Yes'." +
+                                "\nNote that if you don't have the required map you can open other DotA map which version is the closest to required (to avoid bugs)." +
+                                "\nPressing 'No' will not stop the parsing process, but the information on heroes and items will not be present (only player names and chatlog)." +
+                                "\nDo you want to manually specify the map file?", "Map file was not found", MessageBoxButtons.YesNo);
+
+                            if (dr == DialogResult.Yes)
+                                mlSettings.Filename = null;
+                            else
+                                return;
+                        }
+                    }
+                }
             }
 
             DHMAIN.LoadMap(mlSettings);

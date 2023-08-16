@@ -9,6 +9,7 @@ using System.Reflection;
 using System.Collections.Specialized;
 using System.Drawing;
 using Deerchao.War3Share.W3gParser;
+using System.Windows.Forms;
 
 namespace DotaHIT.Extras
 {
@@ -143,14 +144,19 @@ namespace DotaHIT.Extras
 
             public bool LoadFromFile(string cachePath, string mapPath)
             {
-                if (!File.Exists(cachePath)) return false;
+                if (!File.Exists(cachePath))
+                {
+                    return false;
+                }
 
-                if (!File.Exists(mapPath)) return false;                
+                if (!File.Exists(mapPath))
+                {
+                    return false;
+                }
 
                 cacheArchive = GZipArchive.FromFile(cachePath);
                 if (cacheArchive.Version != version)
                 {
-                    cacheArchive = null;
                     return false;
                 }
 

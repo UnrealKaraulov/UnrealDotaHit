@@ -28,7 +28,7 @@ namespace DotaHIT.Extras
         private RichTextBox buffer = new RichTextBox();
         private Replay_Parser.ReplayFinder replayFinder = null;
         private Replay_Parser.ReplayStatistics replayStatistics = null;
-        HabPropertiesCollection hpcReplayParserCfg = null;        
+        HabPropertiesCollection hpcReplayParserCfg = null;
 
         Dictionary<string, Replay> dcReplayCache = new Dictionary<string, Replay>();
 
@@ -44,7 +44,7 @@ namespace DotaHIT.Extras
             scourgeMiddleLineUpTS.Renderer = UIRenderers.NoBorderRenderer;
             scourgeTopLineUpTS.Renderer = UIRenderers.NoBorderRenderer;
             bansTS.Renderer = UIRenderers.NoBorderRenderer;
-            picksTS.Renderer = UIRenderers.NoBorderRenderer;            
+            picksTS.Renderer = UIRenderers.NoBorderRenderer;
 
             this.Icon = Properties.Resources.Icon;
 
@@ -55,7 +55,7 @@ namespace DotaHIT.Extras
             watchReplayItem.Click += new EventHandler(watchReplayItem_Click);
             browser.FilesContextMenuStrip.Items.Insert(1, watchReplayItem);
             browser.ContextMenuShowing += new EventHandler(browser_ContextMenuShowing);
-            
+
             PreviewReplay(null);
 
             Control.CheckForIllegalCrossThreadCalls = false;
@@ -67,11 +67,11 @@ namespace DotaHIT.Extras
             this.WindowState = (hpcReplayParserCfg.GetIntValue("UI", "Maximized", 0) == 1) ? FormWindowState.Maximized : FormWindowState.Normal;
             this.cacheMapsTSMI.Checked = hpcReplayParserCfg.GetIntValue("Map", "UseCache", 1) == 1;
             this.cacheReplayStatsTSMI.Checked = hpcReplayParserCfg.GetIntValue("Replay", "UseStatsCache", 1) == 1;
-        }             
+        }
 
         public ReplayBrowserForm(string path)
             : this()
-        {            
+        {
             browser.SelectedPath = path;
 
             this.Show();
@@ -84,9 +84,9 @@ namespace DotaHIT.Extras
             {
                 if (ParseReplay(file))
                 {
-                    DisplayReplay(currentReplay);                    
+                    DisplayReplay(currentReplay);
                 }
-            }            
+            }
 
             this.Show();
 
@@ -94,7 +94,7 @@ namespace DotaHIT.Extras
 
             browser.EnsureExplorerLoaded();
             browser.SelectedPath = Path.GetDirectoryName(file);
-            browser.SelectedFile = file;            
+            browser.SelectedFile = file;
         }
 
         private void ReplayParserForm_FormClosed(object sender, FormClosedEventArgs e)
@@ -114,10 +114,10 @@ namespace DotaHIT.Extras
         }
 
         void AttachPlugins()
-        {            
+        {
             HabProperties hpsPlugins;
-            if (Current.plugins.TryGetValue("ReplayParser", out hpsPlugins))            
-                foreach(Plugins.IDotaHITPlugin plugin in hpsPlugins.Values)
+            if (Current.plugins.TryGetValue("ReplayParser", out hpsPlugins))
+                foreach (Plugins.IDotaHITPlugin plugin in hpsPlugins.Values)
                 {
                     TabPage tbPlugin = new TabPage(plugin.Name);
                     replayTabControl.TabPages.Add(tbPlugin);
@@ -144,8 +144,8 @@ namespace DotaHIT.Extras
             {
                 e.Cancel = true; // suppress file execution
 
-                if (ParseReplay(file))                
-                    DisplayReplay(currentReplay);                
+                if (ParseReplay(file))
+                    DisplayReplay(currentReplay);
             }
         }
 
@@ -201,14 +201,14 @@ namespace DotaHIT.Extras
                 case PlayerColor.Yellow: return Color.FromArgb(200, 200, 70);//Color.Yellow;
                 default: return Color.Black;
             }
-        }        
+        }
 
         private void FillPlayerList(RichTextBox rtb, List<Player> players)
-        {            
+        {
             buffer.Clear();
             for (int i = 0; i < players.Count; i++)
-            {                
-                if (showPlayerColors)                
+            {
+                if (showPlayerColors)
                     buffer.SelectionColor = playerColorToColor(players[i].Color);
 
                 buffer.AppendText(players[i].Name);
@@ -222,7 +222,7 @@ namespace DotaHIT.Extras
 
             rtb.Rtf = buffer.Rtf;
         }
-      
+
         internal void DisplayReplayInfo(Replay replay)
         {
             currentReplay = replay;
@@ -247,10 +247,20 @@ namespace DotaHIT.Extras
                 string path = ReplayParserCore.GetProperMapPath(replay.Map.Path);
                 if (File.Exists(path))
                 {
-                    DisplayUserInfo(Color.Green, "Ready", "for parsing",true);
+                    DisplayUserInfo(Color.Green, "Ready", "for parsing", true);
                 }
                 else
-                    DisplayUserInfo(Color.Red, "Map file", "not found", false, true);
+                {
+                    string mapFilename = Path.GetFileNameWithoutExtension(path);
+
+                    if ((mapFilename.ToLower().Contains("v6.83s") || mapFilename.ToLower().Contains("iccup")) && 
+                        File.Exists(ReplayParserCore.CachePath + "\\dota.w3x"))
+                    {
+                      DisplayUserInfo(Color.Green, "Ready", "for parsing", true);
+                    }
+                    else
+                        DisplayUserInfo(Color.Red, "Map file", "not found", false, true);
+                }
             }
             else
             {
@@ -293,15 +303,15 @@ namespace DotaHIT.Extras
                     dcReplayCache[filename] = currentReplay;
                 }
 
-                DisplayReplayInfo(currentReplay);                            
+                DisplayReplayInfo(currentReplay);
             }
             else
             {
                 currentReplay = null;
                 DisplayReplayInfo(currentReplay);
-                DisplayUserInfo(Color.FromArgb(33,136,235), "Select", "Replay File", false);
+                DisplayUserInfo(Color.FromArgb(33, 136, 235), "Select", "Replay File", false);
             }
-        }      
+        }
 
         private void playerColorsLL_MouseDown(object sender, MouseEventArgs e)
         {
@@ -328,27 +338,27 @@ namespace DotaHIT.Extras
                 try
                 {
                     ParseSettings parseSettings = new ParseSettings();
-                    parseSettings.EmulateInventory = true;                    
+                    parseSettings.EmulateInventory = true;
 
                     currentReplay = new Replay(filename, MapRequired, parseSettings);
                     dcReplayCache[filename] = currentReplay;
                 }
-                catch(Exception e)
+                catch (Exception e)
                 {
                     if (MessageBox.Show("An error occured while parsing this replay. Do you want to see the error message?", "Parse error", MessageBoxButtons.YesNo) == DialogResult.Yes)
-                    {                        
-                        Form f = Program.GetErrorReportForm("Parse Error report", e);               
+                    {
+                        Form f = Program.GetErrorReportForm("Parse Error report", e);
                         f.Show();
                     }
                     currentReplay = null;
                     return false;
-                }                
+                }
             }
 
             DHTIMER.PrintEndCount("ParseReplay");
             DHTIMER.ResetCount();
 
-            return true;            
+            return true;
         }
 
         public void MapRequired(object sender, EventArgs e)
@@ -356,7 +366,6 @@ namespace DotaHIT.Extras
             Replay replay = sender as Replay;
             string mapPath = ReplayParserCore.GetProperMapPath(replay.Map.Path);
             string mapFilename = Path.GetFileNameWithoutExtension(mapPath);
-
             if (hpcReplayParserCfg.GetIntValue("Map", "UseCache", 1) == 1)
             {
                 Stopwatch sw = new Stopwatch(); sw.Start();
@@ -364,7 +373,7 @@ namespace DotaHIT.Extras
 
                 bool cacheOk = replay.MapCache.LoadFromFile(ReplayParserCore.CachePath + "\\" + mapFilename + ".dha", mapPath);
 
-             
+
                 if (cacheOk)
                 {
                     sw.Stop(); Console.WriteLine("MapCacheLoad: " + ((float)sw.ElapsedMilliseconds / (float)1000.0));
@@ -373,9 +382,9 @@ namespace DotaHIT.Extras
                 }
                 else
                 {
-                    if (mapFilename.ToLower().Contains("dota"))
+                    if (mapFilename.ToLower().Contains("v6.83s") || mapFilename.ToLower().Contains("iccup"))
                     {
-                        cacheOk = replay.MapCache.LoadFromFile(ReplayParserCore.CachePath + "\\dota.dha", mapPath);
+                        cacheOk = replay.MapCache.LoadFromFile(ReplayParserCore.CachePath + "\\dota.dha", ReplayParserCore.CachePath + "\\dota.w3x");
                         if (cacheOk)
                         {
                             sw.Stop(); Console.WriteLine("MapCacheLoad: " + ((float)sw.ElapsedMilliseconds / (float)1000.0));
@@ -409,19 +418,40 @@ namespace DotaHIT.Extras
 
             if (!File.Exists(mapPath))
             {
-                DialogResult dr = MessageBox.Show("The map for this replay ('" + mapPath + "') was not found." +
-                    "\nIf this map is located somewhere else, you can open it manually if you press 'Yes'." +
-                    "\nNote that if you don't have the required map you can open other DotA map which version is the closest to required (to avoid bugs)." +
-                    "\nPressing 'No' will not stop the parsing process, but the information on heroes and items will not be present (only player names and chatlog)." +
-                    "\nDo you want to manually specify the map file?", "Map file was not found", MessageBoxButtons.YesNo);
+                bool cacheOk = replay.MapCache.LoadFromFile(ReplayParserCore.CachePath + "\\" + mapFilename + ".dha", mapPath);
 
-                if (dr == DialogResult.Yes)
-                    mlSettings.Filename = null;
-                else
+                if (cacheOk)
+                {
                     return;
+                }
+                else
+                {
+                    if (mapFilename.ToLower().Contains("v6.83s") || mapFilename.ToLower().Contains("iccup"))
+                    {
+                        cacheOk = replay.MapCache.LoadFromFile(ReplayParserCore.CachePath + "\\dota.dha", ReplayParserCore.CachePath + "\\dota.w3x");
+                        if (cacheOk)
+                        {
+                            replay.MapCache.SaveToFile(ReplayParserCore.CachePath + "\\" + mapFilename + ".dha");
+                            return;
+                        }
+                        else
+                        {
+                            DialogResult dr = MessageBox.Show("The map for this replay ('" + mapPath + "') was not found 3." +
+                                "\nIf this map is located somewhere else, you can open it manually if you press 'Yes'." +
+                                "\nNote that if you don't have the required map you can open other DotA map which version is the closest to required (to avoid bugs)." +
+                                "\nPressing 'No' will not stop the parsing process, but the information on heroes and items will not be present (only player names and chatlog)." +
+                                "\nDo you want to manually specify the map file?", "Map file was not found", MessageBoxButtons.YesNo);
+
+                            if (dr == DialogResult.Yes)
+                                mlSettings.Filename = null;
+                            else
+                                return;
+                        }
+                    }
+                }
             }
-            
-            DHMAIN.LoadMap(mlSettings);            
+
+            DHMAIN.LoadMap(mlSettings);
 
             this.BringToFront();
         }
@@ -480,11 +510,11 @@ namespace DotaHIT.Extras
         void browser_ContextMenuShowing(object sender, EventArgs e)
         {
             watchReplayItem.Visible = (Path.GetExtension(browser.SelectedFile) == ".w3g");
-        }   
+        }
 
         void watchReplayItem_Click(object sender, EventArgs e)
         {
             ViewReplayInWarCraft(browser.SelectedFile);
-        }              
+        }
     }
 }

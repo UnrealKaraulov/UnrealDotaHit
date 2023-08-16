@@ -28,19 +28,25 @@ namespace BlpLib
             //////////////////////////////
             // get required texture size
             //////////////////////////////
+            try
+            {
+                uint textureSize = LoadBLP(IntPtr.Zero, srcBlp, out width, out height, out type, out subtype, false);
 
-            uint textureSize = LoadBLP(IntPtr.Zero, srcBlp, out width, out height, out type, out subtype, false);
+                IntPtr scan0 = Marshal.AllocHGlobal((int)textureSize);
 
-            IntPtr scan0 = Marshal.AllocHGlobal((int)textureSize);          
+                LoadBLP(scan0, srcBlp, out width, out height, out type, out subtype, false);
 
-            LoadBLP(scan0, srcBlp, out width, out height, out type, out subtype, false);
+                Bitmap bmp = new Bitmap(width, height,
+                    (int)(textureSize / height),
+                    pf == PixelFormat.DontCare ? PixelFormat.Format32bppRgb : pf,
+                    scan0);
 
-            Bitmap bmp = new Bitmap(width, height, 
-                (int)(textureSize / height), 
-                pf == PixelFormat.DontCare ? PixelFormat.Format32bppRgb : pf,
-                scan0);
-
-            return bmp;       
+                return bmp;
+            }
+            catch
+            {
+                return new Bitmap(256, 256);
+            }
         }
         static public Bitmap BlpToBitmap(MemoryStream ms)
         {

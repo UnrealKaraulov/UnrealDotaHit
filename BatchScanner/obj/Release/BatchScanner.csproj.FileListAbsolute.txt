@@ -1,0 +1,8 @@
+C:\Projects\WAR3\UnrealDotaHit\BatchScanner\bin\Release\BatchScanner.exe.config
+C:\Projects\WAR3\UnrealDotaHit\BatchScanner\bin\Release\BatchScanner.exe
+C:\Projects\WAR3\UnrealDotaHit\BatchScanner\bin\Release\BatchScanner.pdb
+C:\Projects\WAR3\UnrealDotaHit\BatchScanner\obj\Release\BatchScanner.csproj.AssemblyReference.cache
+C:\Projects\WAR3\UnrealDotaHit\BatchScanner\obj\Release\BatchScanner.csproj.SuggestedBindingRedirects.cache
+C:\Projects\WAR3\UnrealDotaHit\BatchScanner\obj\Release\BatchScanner.csproj.CoreCompileInputs.cache
+C:\Projects\WAR3\UnrealDotaHit\BatchScanner\obj\Release\BatchScanner.exe
+C:\Projects\WAR3\UnrealDotaHit\BatchScanner\obj\Release\BatchScanner.pdb

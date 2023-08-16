@@ -5,6 +5,8 @@ VisualStudioVersion = 17.4.33403.182
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UnrealDotaHIT", "DotaHAB\UnrealDotaHIT.csproj", "{6DF82407-942B-4B06-9D60-070225917CA7}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BatchScanner", "BatchScanner\BatchScanner.csproj", "{95EFBF37-D49B-4616-A514-21333B5D93B4}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -25,6 +27,18 @@ Global
 		{6DF82407-942B-4B06-9D60-070225917CA7}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
 		{6DF82407-942B-4B06-9D60-070225917CA7}.Release|Mixed Platforms.Build.0 = Release|Any CPU
 		{6DF82407-942B-4B06-9D60-070225917CA7}.Release|Win32.ActiveCfg = Release|Any CPU
+		{95EFBF37-D49B-4616-A514-21333B5D93B4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{95EFBF37-D49B-4616-A514-21333B5D93B4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{95EFBF37-D49B-4616-A514-21333B5D93B4}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{95EFBF37-D49B-4616-A514-21333B5D93B4}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{95EFBF37-D49B-4616-A514-21333B5D93B4}.Debug|Win32.ActiveCfg = Debug|Any CPU
+		{95EFBF37-D49B-4616-A514-21333B5D93B4}.Debug|Win32.Build.0 = Debug|Any CPU
+		{95EFBF37-D49B-4616-A514-21333B5D93B4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{95EFBF37-D49B-4616-A514-21333B5D93B4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{95EFBF37-D49B-4616-A514-21333B5D93B4}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{95EFBF37-D49B-4616-A514-21333B5D93B4}.Release|Mixed Platforms.Build.0 = Release|Any CPU
+		{95EFBF37-D49B-4616-A514-21333B5D93B4}.Release|Win32.ActiveCfg = Release|Any CPU
+		{95EFBF37-D49B-4616-A514-21333B5D93B4}.Release|Win32.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

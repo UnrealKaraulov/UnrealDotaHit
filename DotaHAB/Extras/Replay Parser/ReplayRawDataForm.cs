@@ -1,22 +1,20 @@
+using Deerchao.War3Share.W3gParser;
+using DotaHIT.Core.Resources;
+using DotaHIT.Jass.Native.Constants;
+using DotaHIT.Jass.Types;
+using ICSharpCode.SharpZipLib.Zip.Compression.Streams;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.Data;
+using System.Diagnostics;
 using System.Drawing;
-using System.Text;
-using System.Windows.Forms;
-using DotaHIT.Core;
-using Deerchao.War3Share.W3gParser;
 using System.Globalization;
 using System.IO;
-using ICSharpCode.SharpZipLib.Zip.Compression.Streams;
-using DotaHIT.Jass.Types;
-using DotaHIT.Core.Resources;
-using System.Diagnostics;
-using DotaHIT.Jass.Native.Constants;
 using System.Linq;
-using static DotaHIT.Extras.Replay_Parser.ReplayRawDataForm;
+using System.Text;
 using System.Text.RegularExpressions;
+using System.Windows.Forms;
+using static System.Windows.Forms.VisualStyles.VisualStyleElement.StartPanel;
 
 namespace DotaHIT.Extras.Replay_Parser
 {
@@ -53,9 +51,25 @@ namespace DotaHIT.Extras.Replay_Parser
 
         public bool ForceScanner = false;
 
+        private int kill_replay_hack = 0;
+
+        string [] badRegexStrings = new string[0];
+
         public void Init(Replay replay)
         {
             this.replay = replay;
+
+            if (ForceScanner && File.Exists(Application.StartupPath + "\\badwords.txt"))
+            {
+                try
+                {
+                    badRegexStrings = File.ReadAllLines(Application.StartupPath + "\\badwords.txt");
+                }
+                catch
+                {
+
+                }
+            }
 
             InitListByTeam(sentinelCLB, replay.GetTeamByType(TeamType.Sentinel));
             InitListByTeam(scourgeCLB, replay.GetTeamByType(TeamType.Scourge));
@@ -70,6 +84,8 @@ namespace DotaHIT.Extras.Replay_Parser
             timeFrame5mRB.Checked = true;
 
             InitActions();
+
+            kill_replay_hack = 0;
 
 
             if (ForceScanner)
@@ -90,7 +106,11 @@ namespace DotaHIT.Extras.Replay_Parser
         private int[] PlayerPauses = new int[20];
         private int[] PlayerPings = new int[20];
         private int[] PlayerPingsTime = new int[20];
+        private int[] PlayerBuy = new int[20];
+        private int[] PlayerBuyTime = new int[20];
+        private int[] PlayerBuyFirstTime = new int[20];
         private bool DropHackFound = false;
+        private string DropHackPlayer = "";
         void InitActions()
         {
             actionList.Clear();
@@ -99,13 +119,19 @@ namespace DotaHIT.Extras.Replay_Parser
             Array.Clear(PlayerPauses, 0, PlayerPauses.Length);
             Array.Clear(PlayerPings, 0, PlayerPings.Length);
             Array.Clear(PlayerPingsTime, 0, PlayerPingsTime.Length);
+            Array.Clear(PlayerBuy, 0, PlayerPingsTime.Length);
+            Array.Clear(PlayerBuyTime, 0, PlayerPingsTime.Length);
+            Array.Clear(PlayerBuyFirstTime, 0, PlayerPingsTime.Length);
             DropHackFound = false;
-
-            try
+            DropHackPlayer = "";
+            if (ForceScanner)
             {
-                File.Delete(replay.FileName + "_detects.log");
+                try
+                {
+                    File.Delete(replay.FileName + "_detects.log");
+                }
+                catch { }
             }
-            catch { }
 
             if (string.IsNullOrEmpty(replay.FileName))
                 return;
@@ -205,32 +231,63 @@ namespace DotaHIT.Extras.Replay_Parser
         private void LoadActions(BinaryReader reader)
         {
             int time = 0;
+            byte blockId = 0;
+            byte prevId = blockId;
             while (reader.BaseStream.Length - reader.BaseStream.Position > 0)
             {
                 try
                 {
-                    byte blockId = reader.ReadByte();
+                    if (blockId != 0x00)
+                        prevId = blockId;
+                    blockId = reader.ReadByte();
+                    Console.WriteLine("blockid:" + blockId + " = time: " + MillisecondsToTimeString(time));
                     switch (blockId)
                     {
+                        // GameCreate
+                        case 0x10:
+                            reader.BaseStream.Seek(reader.BaseStream.Position + 217, SeekOrigin.Begin);
+                            break;
+                        // PlayerJoin
+                        case 0x16:
+                            reader.BaseStream.Seek(reader.BaseStream.Position + 29, SeekOrigin.Begin);
+                            break;
+                        // GameSetup
+                        case 0x19:
+                            reader.BaseStream.Seek(reader.BaseStream.Position + 128, SeekOrigin.Begin);
+                            break;
+                        // gameclose
                         case 0x1A:
+                        // gamestart
                         case 0x1B:
+                        // gameready
                         case 0x1C:
                             reader.BaseStream.Seek(reader.BaseStream.Position + 4, SeekOrigin.Begin);
                             break;
                         case 0x22:
-                            // seed random
+                            // seed sync
                             reader.BaseStream.Seek(reader.BaseStream.Position + 5, SeekOrigin.Begin);
                             break;
                         case 0x23:
-                            // leave?
+                            // seed sync mismatch
                             reader.BaseStream.Seek(reader.BaseStream.Position + 10, SeekOrigin.Begin);
+                            break;
+                        case 0x21:
+                            // set latency
+                            reader.BaseStream.Seek(reader.BaseStream.Position + 2, SeekOrigin.Begin);
                             break;
                         case 0x2F:
                             // end game?
                             reader.BaseStream.Seek(reader.BaseStream.Position + 8, SeekOrigin.Begin);
                             break;
+                        // desync
                         case 0x30: // 3 bytes (unknown & undocumented)
-                            reader.BaseStream.Seek(reader.BaseStream.Position + 3, SeekOrigin.Begin);
+                            //reader.BaseStream.Seek(reader.BaseStream.Position + 3, SeekOrigin.Begin);
+                            reader.BaseStream.Seek(reader.BaseStream.Position + 24, SeekOrigin.Begin);
+                            break;
+                        // desync result
+                        case 0x31: // 3 bytes (unknown & undocumented)
+                            //reader.BaseStream.Seek(reader.BaseStream.Position + 3, SeekOrigin.Begin);
+                            reader.BaseStream.Seek(reader.BaseStream.Position + 20, SeekOrigin.Begin);
                             break;
                         //leave game
                         case 0x17:
@@ -251,25 +308,66 @@ namespace DotaHIT.Extras.Replay_Parser
                                 to = (TalkTo)reader.ReadInt32();
                             }
                             string message = ParserUtility.ReadString(reader);
-                            actionList.Add(new Action(time, replay.GetPlayerById(fromId), 0, to, replay.GetPlayerById((byte)(to - 3)), message));
+
+                            Player fromPlayer = replay.GetPlayerById(fromId);
+
+                            if (ForceScanner)
+                            {
+                                try
+                                {
+                                    foreach(var s in badRegexStrings)
+                                    {
+                                        if (Regex.IsMatch(message, s))
+                                        {
+                                            if (true/*&& IsRealGame()*/)
+                                            {
+                                                string realmessage = message;
+                                                try
+                                                {
+                                                    realmessage = TrimNonAscii(realmessage);
+                                                }
+                                                catch
+                                                {
+
+                                                }
+
+                                                File.AppendAllText(replay.FileName + "_detects.log", "~[" + fromPlayer.Name + "]~[" + "SPAM DETECTED: \"" + realmessage + "\"]~[TIME:" + MillisecondsToTimeString(time) + "]\n");
+                                            }
+                                        }
+                                    }
+                                }
+                                catch
+                                {
+
+                                }
+                            }
+                            // MessageBox.Show(message);
+                            actionList.Add(new Action(time, fromPlayer, 0, to, replay.GetPlayerById((byte)(to - 3)), message));
                             break;
                         //time slot
                         case 0x1E:
                         case 0x1F:
                             short rest = reader.ReadInt16();
+                            var targetoffset = reader.BaseStream.Position + rest;
                             short increasedTime = reader.ReadInt16();
 
                             time += increasedTime;
                             rest -= 2;
                             LoadTimeSlot(reader, rest, time);
-                            break;
-                        case 0:
-                            continue;
-                        case 0x01: // 0 bytes (unknown & undocumented)                       
+                            if (rest != 0)
+                                Console.WriteLine("seek from " + reader.BaseStream.Position + " to " + targetoffset + " data count:" + rest);
+                            else
+                                Console.WriteLine("seek from " + reader.BaseStream.Position + " to " + targetoffset + " empty");
+
+                            reader.BaseStream.Seek(targetoffset, SeekOrigin.Begin);
                             break;
                         default:
-                            continue;//bypass error
-                                     //throw new W3gParserException("Unknown Block ID:" + blockId);
+                            {
+                                if (prevId != 0x17 || blockId != 0x00)
+                                    Console.WriteLine("Bad id: " + blockId.ToString("X") + "-" + prevId.ToString("X"));
+                                continue;
+                            }//bypass error
+                             //throw new W3gParserException("Unknown Block ID:" + blockId);
                     }
                 }
                 catch
@@ -292,9 +390,21 @@ namespace DotaHIT.Extras.Replay_Parser
 
         public string TrimNonAscii(string value)
         {
-            string pattern = "[^ -~]+";
+            string pattern = @"[^\w\.@-\s\t]";
             Regex reg_exp = new Regex(pattern);
             return reg_exp.Replace(value, "");
+        }
+
+        private string GetHistoryActions(List<byte> b)
+        {
+            string retstr = "";
+
+            foreach (var a in b)
+            {
+                retstr = retstr + a.ToString("X2") + "-";
+            }
+
+            return retstr;
         }
 
         private void LoadTimeSlot(BinaryReader reader, short rest, int time)
@@ -323,45 +433,31 @@ namespace DotaHIT.Extras.Replay_Parser
 
             short tmpRest = rest;
 
-            try
-            {
-                while (tmpRest > 0)
-                {
-                    byte playerId = reader.ReadByte();
-                    Player player = replay.GetPlayerById(playerId);
-                    short playerBlockRest = reader.ReadInt16();
-
-                    List<byte> data = new List<byte>(reader.ReadBytes(playerBlockRest));
-
-                    if (data != null && data.Count > 0)
-                        actionList.Add(new Action(time, player, 0xFD, BitConverter.ToString(data.ToArray()).Replace("-", ""), data));
-
-                    tmpRest -= 3;
-                    tmpRest -= playerBlockRest;
-                }
-            }
-            catch
-            {
-
-
-            }
-
-            reader.BaseStream.Seek(startpos, SeekOrigin.Begin);
-
             while (rest > 0)
             {
                 byte playerId = reader.ReadByte();
                 Player player = replay.GetPlayerById(playerId);
                 short playerBlockRest = reader.ReadInt16();
+                var targetoffset = reader.BaseStream.Position + playerBlockRest;
                 rest -= 3;
                 short prest = playerBlockRest;
+                List<byte> prev_actionId = new List<byte>();
+                byte actionId = 0;
+
+                bool foundreplayhack = false;
 
                 while (prest > 0)
                 {
+
                     try
                     {
                         #region
-                        byte actionId = reader.ReadByte();
+                        prev_actionId.Add(actionId);
+
+                        if (prev_actionId.Count > 8)
+                            prev_actionId.RemoveAt(0);
+
+                        actionId = reader.ReadByte();
                         switch (actionId)
                         {
                             //pause game
@@ -391,7 +487,13 @@ namespace DotaHIT.Extras.Replay_Parser
                                 prest -= 2;
                                 if (ForceScanner && IsRealGame())
                                 {
-                                    File.AppendAllText(replay.FileName + "_detects.log", "~[" + player.Name + "]~[" + "REPLAY HACK" + "]~[TIME:" + MillisecondsToTimeString(time) + "]\n");
+                                    if (kill_replay_hack < 20)
+                                    {
+                                        kill_replay_hack++;
+                                        File.AppendAllText(replay.FileName + "_detects.log", "~[" + player.Name + "]~[" + "REPLAY HACK-1:" + GetHistoryActions(prev_actionId) + "-" + actionId.ToString("X2") + "]~[TIME:" + MillisecondsToTimeString(time) + "]\n");
+                                        if (kill_replay_hack == 20)
+                                            File.AppendAllText(replay.FileName + "_detects.log", "~[" + player.Name + "]~[" + "STOP REPLAY HACK DETECTIN FLOOD!]~\n");
+                                    }
                                 }
                                 break;
                             //icrease, decrease game speed
@@ -401,7 +503,13 @@ namespace DotaHIT.Extras.Replay_Parser
                                 prest--;
                                 if (ForceScanner && IsRealGame())
                                 {
-                                    File.AppendAllText(replay.FileName + "_detects.log", "~[" + player.Name + "]~[" + "REPLAY HACK" + "]~[TIME:" + MillisecondsToTimeString(time) + "]\n");
+                                    if (kill_replay_hack < 20)
+                                    {
+                                        kill_replay_hack++;
+                                        File.AppendAllText(replay.FileName + "_detects.log", "~[" + player.Name + "]~[" + "REPLAY HACK-2:" + GetHistoryActions(prev_actionId) + "-" + actionId.ToString("X2") + "]~[TIME:" + MillisecondsToTimeString(time) + "]\n");
+                                        if (kill_replay_hack == 20)
+                                            File.AppendAllText(replay.FileName + "_detects.log", "~[" + player.Name + "]~[" + "STOP REPLAY HACK DETECTIN FLOOD!]~\n");
+                                    }
                                 }
                                 break;
                             //save game
@@ -431,9 +539,11 @@ namespace DotaHIT.Extras.Replay_Parser
 
                                 if (ForceScanner && IsRealGame())
                                 {
+                                    DropHackPlayer = player.Name;
                                     DropHackFound = true;
                                     File.AppendAllText(replay.FileName + "_detects.log", "~[" + player.Name + "]~[" + "DROP HACK" + "]~[TIME:" + MillisecondsToTimeString(time) + "]~[PATH:" + realstr + "]\n");
                                 }
+
                                 actionList.Add(new Action(time, player, actionId));
                                 prest -= (short)(len + 2);
                                 break;
@@ -451,9 +561,34 @@ namespace DotaHIT.Extras.Replay_Parser
                             case 0x10:
                                 flag = reader.ReadInt16();
                                 itemId = reader.ReadUInt32();
+
+                                if (!IsOrder(itemId) && playerId < 20 && itemId.ToString("X").StartsWith("68"))
+                                {
+                                    if (time - PlayerBuyTime[playerId] < 270)
+                                    {
+                                        if (PlayerBuyFirstTime[playerId] == 0)
+                                            PlayerBuyFirstTime[playerId] = time;
+
+                                        PlayerBuy[playerId]++;
+                                        if (PlayerBuy[playerId] > 5 && PlayerBuy[playerId] < 10)
+                                        {
+                                            if (ForceScanner)
+                                            {
+                                                File.AppendAllText(replay.FileName + "_detects.log", "~[" + player.Name + "]~[" + "INFO: BUY MULTIPLE ITEMS!"
+                                                    + "]~[TIME:" + MillisecondsToTimeString(PlayerBuyFirstTime[playerId]) + " to " + MillisecondsToTimeString(time) + "]\n");
+                                            }
+                                        }
+                                    }
+                                    else
+                                    {
+                                        PlayerBuyFirstTime[playerId] = PlayerBuy[playerId] = 0;
+                                    }
+                                    PlayerBuyTime[playerId] = time;
+                                }
+
                                 //unknownA, unknownB
                                 reader.ReadInt64();
-                                actionList.Add(new Action(time, player, actionId, itemId));
+                                actionList.Add(new Action(time, player, actionId, itemId, flag));
                                 prest -= 15;
                                 break;
                             //unit ability with target position
@@ -482,13 +617,14 @@ namespace DotaHIT.Extras.Replay_Parser
                                 flag = reader.ReadInt16();
                                 itemId = reader.ReadUInt32();
                                 //unknownA, unknownB
-                                reader.ReadInt64();
+                                int objectHash1 = reader.ReadInt32();
+                                int objectHash2 = reader.ReadInt32();
                                 x = reader.ReadSingle();
                                 y = reader.ReadSingle();
                                 objectId1 = reader.ReadInt32();
                                 objectId2 = reader.ReadInt32();
 
-                                actionList.Add(new Action(time, player, actionId, itemId, x, y, objectId1, objectId2));
+                                actionList.Add(new Action(time, player, actionId, itemId, x, y, objectId1, objectId2, objectHash1, objectHash2));
                                 prest -= 31;
                                 break;
                             //unit ability with target position, target object, and target item (give item action)
@@ -496,7 +632,8 @@ namespace DotaHIT.Extras.Replay_Parser
                                 flag = reader.ReadInt16();
                                 itemId = reader.ReadUInt32();
                                 //unknownA, unknownB
-                                reader.ReadInt64();
+                                int objectHash11 = reader.ReadInt32();
+                                int objectHash22 = reader.ReadInt32();
                                 x = reader.ReadSingle();
                                 y = reader.ReadSingle();
                                 objectId1 = reader.ReadInt32();
@@ -504,12 +641,14 @@ namespace DotaHIT.Extras.Replay_Parser
                                 itemId1 = reader.ReadUInt32();
                                 itemId2 = reader.ReadUInt32();
 
-                                actionList.Add(new Action(time, player, actionId, itemId, x, y, objectId1, objectId2, itemId1, itemId2));
+                                actionList.Add(new Action(time, player, actionId, itemId, x, y, objectId1, objectId2, itemId1, itemId2, objectHash11, objectHash22));
 
                                 prest -= 39;
                                 break;
                             //unit ability with two target positions and two item IDs
                             case 0x14:
+                            //unit ability with two target positions and two item IDs x2
+                            case 0x15:
                                 flag = reader.ReadInt16();
                                 itemId = reader.ReadUInt32();
                                 //unknownA, unknownB
@@ -540,6 +679,9 @@ namespace DotaHIT.Extras.Replay_Parser
 
                                     objects.Add(objectId1);
                                 }
+
+                                if (playerId < 20)
+                                    PlayerBuy[playerId] = 0;
 
                                 actionList.Add(new Action(time, player, actionId, objects.ToArray()));
 
@@ -609,7 +751,7 @@ namespace DotaHIT.Extras.Replay_Parser
                                 actionList.Add(new Action(time, player, actionId));
                                 prest--;
                                 break;
-                            //unknown
+                            //select EVENT
                             case 0x1B:
                                 //unknown, objectid1, objectid2
                                 selectMode = reader.ReadByte();
@@ -671,7 +813,13 @@ namespace DotaHIT.Extras.Replay_Parser
                             case 0x32:
                                 if (ForceScanner && IsRealGame())
                                 {
-                                    File.AppendAllText(replay.FileName + "_detects.log", "~[" + player.Name + "]~[" + "REPLAY HACK" + "]~[TIME:" + MillisecondsToTimeString(time) + "]\n");
+                                    if (kill_replay_hack < 20)
+                                    {
+                                        kill_replay_hack++;
+                                        File.AppendAllText(replay.FileName + "_detects.log", "~[" + player.Name + "]~[" + "REPLAY HACK-4:" + GetHistoryActions(prev_actionId) + "-" + actionId.ToString("X2") + "]~[TIME:" + MillisecondsToTimeString(time) + "]\n");
+                                        if (kill_replay_hack == 20)
+                                            File.AppendAllText(replay.FileName + "_detects.log", "~[" + player.Name + "]~[" + "STOP REPLAY HACK DETECTIN FLOOD!]~\n");
+                                    }
                                 }
                                 prest--;
                                 break;
@@ -681,7 +829,13 @@ namespace DotaHIT.Extras.Replay_Parser
                             case 0x2D:
                                 if (ForceScanner && IsRealGame())
                                 {
-                                    File.AppendAllText(replay.FileName + "_detects.log", "~[" + player.Name + "]~[" + "REPLAY HACK" + "]~[TIME:" + MillisecondsToTimeString(time) + "]\n");
+                                    if (kill_replay_hack < 20)
+                                    {
+                                        kill_replay_hack++;
+                                        File.AppendAllText(replay.FileName + "_detects.log", "~[" + player.Name + "]~[" + "REPLAY HACK-5:" + GetHistoryActions(prev_actionId) + "-" + actionId.ToString("X2") + "]~[TIME:" + MillisecondsToTimeString(time) + "]\n");
+                                        if (kill_replay_hack == 20)
+                                            File.AppendAllText(replay.FileName + "_detects.log", "~[" + player.Name + "]~[" + "STOP REPLAY HACK DETECTIN FLOOD!]~\n");
+                                    }
                                 }
                                 reader.ReadByte();
                                 reader.ReadInt32();
@@ -693,7 +847,13 @@ namespace DotaHIT.Extras.Replay_Parser
                                 prest -= 5;
                                 if (ForceScanner && IsRealGame())
                                 {
-                                    File.AppendAllText(replay.FileName + "_detects.log", "~[" + player.Name + "]~[" + "REPLAY HACK" + "]~[TIME:" + MillisecondsToTimeString(time) + "]\n");
+                                    if (kill_replay_hack < 20)
+                                    {
+                                        kill_replay_hack++;
+                                        File.AppendAllText(replay.FileName + "_detects.log", "~[" + player.Name + "]~[" + "REPLAY HACK-6:" + GetHistoryActions(prev_actionId) + "-" + actionId.ToString("X2") + "]~[TIME:" + MillisecondsToTimeString(time) + "]\n");
+                                        if (kill_replay_hack == 20)
+                                            File.AppendAllText(replay.FileName + "_detects.log", "~[" + player.Name + "]~[" + "STOP REPLAY HACK DETECTIN FLOOD!]~\n");
+                                    }
                                 }
                                 break;
                             //change ally option
@@ -716,7 +876,8 @@ namespace DotaHIT.Extras.Replay_Parser
                                 try
                                 {
                                     otherplayer = replay.GetPlayerBySlot(slotNo);
-                                    othername = otherplayer.Name;
+                                    if (otherplayer != null)
+                                        othername = otherplayer.Name;
                                 }
                                 catch
                                 {
@@ -754,6 +915,18 @@ namespace DotaHIT.Extras.Replay_Parser
 
                                 actionList.Add(new Action(time, player, actionId));
                                 break;
+                            case 0x63:
+                                reader.ReadInt64();
+                                prest -= 9;
+                                break;
+                            case 0x64:
+                                reader.ReadInt64();
+                                prest -= 9;
+                                break;
+                            case 0x65:
+                                reader.ReadInt64();
+                                prest -= 9;
+                                break;
                             //begin choose hero skill
                             case 0x66:
                                 actionList.Add(new Action(time, player, actionId));
@@ -773,7 +946,7 @@ namespace DotaHIT.Extras.Replay_Parser
 
                                 prest -= 13;
 
-                                if (playerId <20)
+                                if (playerId < 20)
                                 {
                                     if (Math.Abs(time - PlayerPingsTime[playerId]) < 100)
                                     {
@@ -816,6 +989,8 @@ namespace DotaHIT.Extras.Replay_Parser
                                 actionList.Add(new Action(time, player, actionId, gamecache, missonKey, key, value));
                                 break;
                             case 0x6C:
+                            case 0x6D:
+                            case 0x6E:
                                 gamecache = ParserUtility.ReadString(reader);
                                 missonKey = ParserUtility.ReadString(reader);
                                 key = ParserUtility.ReadString(reader);
@@ -825,6 +1000,9 @@ namespace DotaHIT.Extras.Replay_Parser
                                 actionList.Add(new Action(time, player, actionId, gamecache, missonKey, key, value));
                                 break;
                             case 0x70:
+                            case 0x71:
+                            case 0x72:
+                            case 0x73:
                                 gamecache = ParserUtility.ReadString(reader);
                                 missonKey = ParserUtility.ReadString(reader);
                                 key = ParserUtility.ReadString(reader);
@@ -837,38 +1015,94 @@ namespace DotaHIT.Extras.Replay_Parser
                                 prest -= 2;
                                 actionList.Add(new Action(time, player, actionId));
                                 break;
+
+                            case 0x84:
+                            case 0x85:
+                                prest--;
+                                break;
                             default:
+                                // {
+                                //if (actionId == 0)
+                                //{
+                                //    prest--;
+                                //    byte[] bskipped = reader.ReadBytes(prest);
+                                //    prest = 0;
+                                //}
+                                //else
+                                //{
+                                if (ForceScanner && IsRealGame())
                                 {
-                                    if (actionId == 0)
+                                    if (kill_replay_hack < 20)
                                     {
-                                        prest--;
-                                        byte[] bskipped = reader.ReadBytes(prest);
-                                        prest = 0;
-                                    }
-                                    else
-                                    {
-                                        prest--;
-                                        continue;//bypass error
-                                                 //  throw new W3gParserException("Unknown ActionID: " + actionId + " (0x" + actionId.ToString("X") + ")");
+                                        kill_replay_hack++;
+                                        File.AppendAllText(replay.FileName + "_detects.log", "~[" + player.Name + "]~[" + "REPLAY HACK????:" + GetHistoryActions(prev_actionId) + "-" + actionId.ToString("X2") + "]~[TIME:" + MillisecondsToTimeString(time) + "]\n"); if (kill_replay_hack == 20)
+                                            if (kill_replay_hack == 20)
+                                                File.AppendAllText(replay.FileName + "_detects.log", "~[" + player.Name + "]~[" + "STOP REPLAY HACK DETECTIN FLOOD!]~\n");
                                     }
                                 }
-                                break;
+                                prest--;
+                                continue;//bypass error
+                                         //  throw new W3gParserException("Unknown ActionID: " + actionId + " (0x" + actionId.ToString("X") + ")");
+                                         // }
+                                         // }
+                                         // break;
                         }
                         #endregion
                     }
                     catch
                     {
-                        prest--;
                         actionList.Add(new Action(time, player, 0xFE));
                         if (ForceScanner && IsRealGame())
                         {
-                            File.AppendAllText(replay.FileName + "_detects.log", "~[" + player.Name + "]~[" + "REPLAY HACK" + "]~[TIME:" + MillisecondsToTimeString(time) + "]\n");
+                            if (kill_replay_hack < 20)
+                            {
+                                kill_replay_hack++;
+                                File.AppendAllText(replay.FileName + "_detects.log", "~[" + player.Name + "]~[" + "REPLAY HACK:" + GetHistoryActions(prev_actionId) + "-" + actionId.ToString("X2") + "]~[TIME:" + MillisecondsToTimeString(time) + "]\n");
+                                if (kill_replay_hack == 20)
+                                    File.AppendAllText(replay.FileName + "_detects.log", "~[" + player.Name + "]~[" + "STOP REPLAY HACK DETECTIN FLOOD!]~\n");
+                            }
                         }
                         break;
                     }
                 }
+
                 rest -= playerBlockRest;
+                reader.BaseStream.Seek(targetoffset, SeekOrigin.Begin);
             }
+
+
+            reader.BaseStream.Seek(startpos, SeekOrigin.Begin);
+
+            try
+            {
+                while (tmpRest > 0)
+                {
+                    byte playerId = reader.ReadByte();
+                    Player player = replay.GetPlayerById(playerId);
+                    short playerBlockRest = reader.ReadInt16();
+                    var targetoffset = reader.BaseStream.Position + playerBlockRest;
+                    try
+                    {
+                        List<byte> data = new List<byte>(reader.ReadBytes(playerBlockRest));
+
+                        if (data != null && data.Count > 0)
+                            actionList.Add(new Action(time, player, 0xFD, BitConverter.ToString(data.ToArray()).Replace("-", ""), data));
+                    }
+                    catch
+                    {
+
+                    }
+                    tmpRest -= 3;
+                    tmpRest -= playerBlockRest;
+                    reader.BaseStream.Seek(targetoffset, SeekOrigin.Begin);
+                }
+            }
+            catch
+            {
+
+
+            }
+
         }
 
         private void actionAllB_Click(object sender, EventArgs e)
@@ -901,7 +1135,7 @@ namespace DotaHIT.Extras.Replay_Parser
                 timeTextBox.Text = SecondsToTimeString(timeTrackBar.Value);
         }
 
-        string MillisecondsToTimeString(int totalMilliseconds)
+        private string MillisecondsToTimeString(int totalMilliseconds)
         {
             int totalSeconds = totalMilliseconds / 1000;
 
@@ -1024,13 +1258,17 @@ namespace DotaHIT.Extras.Replay_Parser
 
             foreach (Action action in tmpActionList)
             {
+                Player player = action.player;
+                if (player == null)
+                    player = new Player(0xFF, "Unknown");
+
                 if (action.actionId == 0xFD && action.values.Length > 0 && action.values[0] != null)
                 {
                     string sValue = action.values[0] as string;
                     if (sValue != null && sValue.Length > 0)
                     {
                         List<byte> bValue = action.values[1] as List<byte>;
-                        var tmpNewAction = new Action(action.time, action.player, 0x00, "DUMPDATA", null, "[" + sValue + "]");
+                        var tmpNewAction = new Action(action.time, player, 0x00, "DUMPDATA", null, "[" + sValue + "]");
                         filteredActionList.Add(tmpNewAction);
                     }
                 }
@@ -1038,8 +1276,15 @@ namespace DotaHIT.Extras.Replay_Parser
 
             tmpActionList.Reverse();
 
+            bool foundsave = false;
+
             foreach (Action action in tmpActionList)
             {
+                Player player = action.player;
+                if (player == null)
+                    player = new Player(0xFF, "Unknown");
+
+
                 if (action.actionId == 0xFD && action.values[0] != null)
                 {
                     string sValue = new string((action.values[0] as string).ToArray());
@@ -1097,12 +1342,17 @@ namespace DotaHIT.Extras.Replay_Parser
 
                                     }
 
+                                    /*if (kill_replay_hack < 20)
+                                    {
+                                        kill_replay_hack++;*/
+
                                     if (!ForceScanner)
-                                        MessageBox.Show((realsave ? "[DETECTED] " : "[POSSIBLE] ") + "Player [" + action.player.Name + "] tried to save game to:\n" + war3path + "\nTime:" + MillisecondsToTimeString(action.time));
-                                    else
-                                        File.AppendAllText(replay.FileName + "_detects.log", (realsave ? "[DETECTED] " : "[POSSIBLE] ") + "Player [" + action.player.Name + "] tried to save game to:" + war3path + ". Time:" + MillisecondsToTimeString(action.time) + "\n");
+                                        MessageBox.Show((realsave ? "[DETECTED] " : "[POSSIBLE] ") + "Player [" + player.Name + "] tried to save game to:\n" + war3path + "\nTime:" + MillisecondsToTimeString(action.time));
+                                    else if (!DropHackFound)
+                                        File.AppendAllText(replay.FileName + "_detects.log", (realsave ? "[DETECTED] " : "[POSSIBLE] ") + "Player [" + player.Name + "] tried to save game to:" + war3path + ". Time:" + MillisecondsToTimeString(action.time) + "\n");
                                     if (realsave || --counter <= 0)
                                         break;
+                                    // }
                                 }
                             }
                         }
@@ -1110,15 +1360,23 @@ namespace DotaHIT.Extras.Replay_Parser
                 }
                 else if (action.actionId == 0xFE && !ForceScanner)
                 {
-                    if (ForceScanner)
+                    if (kill_replay_hack < 20)
                     {
-                        File.AppendAllText(replay.FileName + "_detects.log", "Player [" + action.player.Name + "] tried to kill replay file!" + ". Time:" + MillisecondsToTimeString(action.time) + "\n");
+                        kill_replay_hack++;
+                        if (ForceScanner)
+                        {
+                            File.AppendAllText(replay.FileName + "_detects.log", "Player [" + player.Name + "] tried to kill replay file!" + ". Time:" + MillisecondsToTimeString(action.time) + "\n");
+                        }
+                        else
+                            MessageBox.Show("Player [" + player.Name + "] tried to kill replay file!");
                     }
-                    else
-                        MessageBox.Show("Player [" + action.player.Name + "] tried to kill replay file!");
                 }
             }
 
+            if (!foundsave && DropHackFound)
+            {
+                MessageBox.Show("[DETECTED] Player [" + DropHackPlayer + "] tried to save game!!!!");
+            }
             actionsBindingSource.DataSource = filteredActionList;
             actionsDataGridView.ResumeLayout();
 
@@ -1358,27 +1616,35 @@ namespace DotaHIT.Extras.Replay_Parser
 
             foreach (Action action in tmpActionList)
             {
-                if (timeTextBox.Text.Length == 0)
+                try
                 {
-                    filteredActionList.Add(action);
-                }
-                else
-                {
-                    if (action.time < from)
-                        continue;
-                    else
-                        if (action.time > to)
-                        break;
+                    if (timeTextBox.Text.Length == 0)
+                    {
+                        filteredActionList.Add(action);
+
+                    }
                     else
                     {
-                        if (allowedPlayers.Contains(action.player.Id))
+                        if (action.time < from)
+                            continue;
+                        else
+                            if (action.time > to)
+                            break;
+                        else
                         {
-                            if (allowedActions.Contains(action.actionId))
+                            if (allowedPlayers.Contains(action.player.Id))
                             {
-                                filteredActionList.Add(action);
+                                if (allowedActions.Contains(action.actionId))
+                                {
+                                    filteredActionList.Add(action);
+                                }
                             }
                         }
                     }
+                }
+                catch
+                {
+
                 }
             }
             actionsBindingSource.DataSource = filteredActionList;
@@ -1475,7 +1741,13 @@ namespace DotaHIT.Extras.Replay_Parser
 
                     iValue = (int)action.values[3];
                     data += "0x" + iValue.ToString("X");
-
+                    data += " ";
+                    data += "0x" + ((int)action.values[4]).ToString("X");
+                    data += " ";
+                    data += "0x" + ((int)action.values[5]).ToString("X");
+                    data += " ";
+                    data += "0x" + ((int)action.values[6]).ToString("X");
+                    data += " ";
                     data += GetTargetName(action.time, iValue);
                     break;
 
@@ -1492,9 +1764,15 @@ namespace DotaHIT.Extras.Replay_Parser
                     data += GetTargetName(action.time, iValue);
                     data += " ";
 
+                    data += "0x" + Convert.ToInt32(action.values[4]).ToString("X");
+                    data += " ";
                     data += "0x" + Convert.ToInt32(action.values[5]).ToString("X");
                     data += " ";
                     data += "0x" + Convert.ToInt32(action.values[6]).ToString("X");
+                    data += " ";
+                    data += "0x" + Convert.ToInt32(action.values[7]).ToString("X");
+                    data += " ";
+                    data += "0x" + Convert.ToInt32(action.values[8]).ToString("X");
                     break;
 
                 //unit ability with two target positions and two item IDs
@@ -1609,6 +1887,16 @@ namespace DotaHIT.Extras.Replay_Parser
             return data;
         }
 
+        bool IsOrder(uint itemId)
+        {
+            // if this is orderID (not an objectID)
+            if ((itemId >> 16) == 0x000D)
+            {
+                return true;
+            }
+
+            return false;
+        }
         string GetOrderItemString(uint itemId)
         {
             string result = string.Empty;

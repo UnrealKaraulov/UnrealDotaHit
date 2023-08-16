@@ -11,6 +11,9 @@ using DotaHIT.Jass.Native.Constants;
 using DotaHIT.Jass.Native.Types;
 using DotaHIT.Extras;
 using DotaHIT.Core;
+using System.Windows.Forms;
+using System.Globalization;
+using System.Diagnostics;
 
 namespace Deerchao.War3Share.W3gParser
 {
@@ -439,43 +442,89 @@ namespace Deerchao.War3Share.W3gParser
                 LoadPlayers(reader);
             }
         }
+        private string MillisecondsToTimeString(int totalMilliseconds)
+        {
+            int totalSeconds = totalMilliseconds / 1000;
+
+            int minutes = totalSeconds / 60;
+            int seconds = totalSeconds % 60;
+            int milliseconds = totalMilliseconds % 1000;
+
+            string result = minutes.ToString("00", NumberFormatInfo.InvariantInfo) + ":" + seconds.ToString("00", NumberFormatInfo.InvariantInfo) + ":" + milliseconds.ToString("000", NumberFormatInfo.InvariantInfo);
+
+            return result;
+        }
 
         private void LoadActions(BinaryReader reader)
         {
             int time = 0;
             bool isPaused = false;
+            byte blockId = 0;
+            byte prevId = blockId;
             while (reader.BaseStream.Length - reader.BaseStream.Position > 0)
             {
                 try
                 {
-                    byte blockId = reader.ReadByte();
+                    if (blockId != 0x00)
+                        prevId = blockId;
+                    blockId = reader.ReadByte();
+                    Console.WriteLine("blockid:" + blockId + " = time: " + MillisecondsToTimeString(time));
                     switch (blockId)
                     {
+                        // GameCreate
+                        case 0x10:
+                            reader.BaseStream.Seek(reader.BaseStream.Position + 217, SeekOrigin.Begin);
+                            break;
+                        // PlayerJoin
+                        case 0x16:
+                            reader.BaseStream.Seek(reader.BaseStream.Position + 29, SeekOrigin.Begin);
+                            break;
+                        // GameSetup
+                        case 0x19:
+                            reader.BaseStream.Seek(reader.BaseStream.Position + 128, SeekOrigin.Begin);
+                            break;
+                        // gameclose
                         case 0x1A:
+                        // gamestart
                         case 0x1B:
+                        // gameready
                         case 0x1C:
                             reader.BaseStream.Seek(reader.BaseStream.Position + 4, SeekOrigin.Begin);
                             break;
                         case 0x22:
+                            // seed sync
                             reader.BaseStream.Seek(reader.BaseStream.Position + 5, SeekOrigin.Begin);
                             break;
                         case 0x23:
+                            // seed sync mismatch
                             reader.BaseStream.Seek(reader.BaseStream.Position + 10, SeekOrigin.Begin);
                             break;
+                        case 0x21:
+                            // set latency
+                            reader.BaseStream.Seek(reader.BaseStream.Position + 2, SeekOrigin.Begin);
+                            break;
                         case 0x2F:
+                            // end game?
                             reader.BaseStream.Seek(reader.BaseStream.Position + 8, SeekOrigin.Begin);
                             break;
+                        // desync
                         case 0x30: // 3 bytes (unknown & undocumented)
-                            reader.BaseStream.Seek(reader.BaseStream.Position + 3, SeekOrigin.Begin);
+                            //reader.BaseStream.Seek(reader.BaseStream.Position + 3, SeekOrigin.Begin);
+                            reader.BaseStream.Seek(reader.BaseStream.Position + 24, SeekOrigin.Begin);
+                            break;
+                        // desync result
+                        case 0x31: // 3 bytes (unknown & undocumented)
+                            //reader.BaseStream.Seek(reader.BaseStream.Position + 3, SeekOrigin.Begin);
+                            reader.BaseStream.Seek(reader.BaseStream.Position + 20, SeekOrigin.Begin);
                             break;
                         //leave game
                         case 0x17:
                             int reason = reader.ReadInt32();
                             byte playerId = reader.ReadByte();
+                            reader.ReadInt64();
                             Player p = GetPlayerById(playerId);
                             p.Time = time;
                             if (reason == 0x0C) saverName = p.Name;
-                            reader.ReadInt64();
                             chats.Add(new ChatInfo(time, p, TalkTo.System, null, "leave"));
                             p.Disconnected = true;
                             break;
@@ -500,18 +549,28 @@ namespace Deerchao.War3Share.W3gParser
                         case 0x1E:
                         case 0x1F:
                             short rest = reader.ReadInt16();
+                            var targetoffset = reader.BaseStream.Position + rest;
                             short increasedTime = reader.ReadInt16();
                             if (!isPaused)
                                 time += increasedTime;
                             rest -= 2;
                             LoadTimeSlot(reader, rest, time, ref isPaused);
-                            break;
-                        case 0:
-                            return;
-                        case 0x01: // 0 bytes (unknown & undocumented)                       
+                            //if (targetoffset != reader.BaseStream.Position)
+                            //{
+                            //    MessageBox.Show("Parse loadtimeslot mismatch:" + reader.BaseStream.Position + "/" + targetoffset);
+                            //}
+                            if (rest != 0)
+                            Console.WriteLine("seek from " + reader.BaseStream.Position + " to " + targetoffset + " data count:" + rest);
+                            else
+                                Console.WriteLine("seek from " + reader.BaseStream.Position + " to " + targetoffset + " empty");
+                            reader.BaseStream.Seek(targetoffset, SeekOrigin.Begin);
                             break;
                         default:
-                            continue;//bypass error
+                            {
+                                if (prevId != 0x17 || blockId != 0x00)
+                                    Console.WriteLine("Bad id: " + blockId.ToString("X") + "-" + prevId.ToString("X"));
+                                continue;
+                            }//bypass error
                                      //throw new W3gParserException("Unknown Block ID:" + blockId);
                     }
                 }
@@ -560,9 +619,9 @@ namespace Deerchao.War3Share.W3gParser
                     continue;
                 player.Time = time;
                 short playerBlockRest = reader.ReadInt16();
+                var targetoffset = reader.BaseStream.Position + playerBlockRest;
                 rest -= 3;
                 short prest = playerBlockRest;
-
                 while (prest > 0)
                 {
                     try
@@ -700,6 +759,7 @@ namespace Deerchao.War3Share.W3gParser
                                 break;
                             //unit ability with two target positions and two item IDs
                             case 0x14:
+                            case 0x15:
                                 flag = reader.ReadInt16();
                                 itemId = reader.ReadUInt32();
                                 //unknownA, unknownB
@@ -773,26 +833,31 @@ namespace Deerchao.War3Share.W3gParser
                                 unitCount = reader.ReadInt16();
                                 //unit ids
                                 //reader.ReadBytes(unitCount * 8);
-                                units = new List<int>(unitCount);
-                                for (int i = 0; i < unitCount; i++)
+                                if (unitCount >= 0)
                                 {
-                                    objectId1 = reader.ReadInt32();
-                                    objectId2 = reader.ReadInt32();
+                                    units = new List<int>(unitCount);
+                                    for (int i = 0; i < unitCount; i++)
+                                    {
+                                        objectId1 = reader.ReadInt32();
+                                        objectId2 = reader.ReadInt32();
 
-                                    RefreshHeroOwner(player, time, objectId1);
+                                        RefreshHeroOwner(player, time, objectId1);
 
-                                    units.Add(objectId1);
+                                        units.Add(objectId1);
+                                    }
+                                    player.ActionsCount++;
+                                    player.Groups.SetGroup(groupNo, units);
+                                    prest -= (short)(unitCount * 8 + 4);
                                 }
-
-                                player.ActionsCount++;
-                                player.Groups.SetGroup(groupNo, units);
+                                else
+                                    prest -= (short)(4);
 #if !SUPRESS_HASH_CALCULATION
                             hashWriter.Write(time);
                             hashWriter.Write(actionId);
                             hashWriter.Write(groupNo);
                             hashWriter.Write(unitCount);
 #endif
-                                prest -= (short)(unitCount * 8 + 4);
+
                                 break;
                             //select group
                             case 0x18:
@@ -840,11 +905,11 @@ namespace Deerchao.War3Share.W3gParser
                                 player.Units.Multiplier = 1;
                                 prest -= 13;
                                 break;
-                            //pre select sub group
+                            //refresh subground
                             case 0x1A:
                                 prest--;
                                 break;
-                            //unknown
+                            //selection event
                             case 0x1B:
                                 //unknown, objectid1, objectid2
                                 reader.ReadByte();
@@ -881,7 +946,7 @@ namespace Deerchao.War3Share.W3gParser
                                 CancelItem(player, itemId, time);
                                 prest -= 6;
                                 break;
-                            //unknown
+                            //cheat critter two int
                             case 0x21:
                                 reader.ReadInt64();
                                 prest -= 9;
@@ -977,7 +1042,7 @@ namespace Deerchao.War3Share.W3gParser
 
                                 prest -= (short)(9 + len);
                                 break;
-                            //esc pressed
+                            //esc pressed (END CINEMATIC)
                             case 0x61:
                                 // exit research mode for this player
                                 if (player.State.IsResearching)
@@ -985,13 +1050,34 @@ namespace Deerchao.War3Share.W3gParser
                                 player.ActionsCount++;
                                 prest--;
                                 break;
-                            //Scenario Trigger
+                            //Trigger Resume
                             case 0x62:
                                 //unknownABC
                                 reader.ReadInt32();
                                 reader.ReadInt64();
 
                                 prest -= 13;
+                                break;
+                            //Trigger Sync
+                            case 0x63:
+                                //unknownABC
+                                reader.ReadInt64();
+
+                                prest -= 9;
+                                break;
+                            //Trackable Hit
+                            case 0x64:
+                                //unknownABC
+                                reader.ReadInt64();
+
+                                prest -= 9;
+                                break;
+                            //Trackable Track
+                            case 0x65:
+                                //unknownABC
+                                reader.ReadInt64();
+
+                                prest -= 9;
                                 break;
                             //begin choose hero skill
                             case 0x66:
@@ -1020,8 +1106,9 @@ namespace Deerchao.War3Share.W3gParser
 
                                 prest -= 13;
                                 break;
-                            //continue game
+                            // dialog button click
                             case 0x69:
+                            // dialog click
                             case 0x6A:
                                 reader.ReadInt64();
                                 reader.ReadInt64();
@@ -1351,6 +1438,8 @@ namespace Deerchao.War3Share.W3gParser
                                 }
                                 break;
                             case 0x6C:
+                            case 0x6D:
+                            case 0x6E:
                                 gamecache = ParserUtility.ReadString(reader);
                                 missonKey = ParserUtility.ReadString(reader);
                                 key = ParserUtility.ReadString(reader);
@@ -1358,27 +1447,40 @@ namespace Deerchao.War3Share.W3gParser
                                 prest -= (short)((gamecache.Length + 1) + (missonKey.Length + 1) + (key.Length + 1) + 4 + 1);
                                 break;
                             case 0x70:
+                            case 0x71:
+                            case 0x72:
+                            case 0x73:
                                 gamecache = ParserUtility.ReadString(reader);
                                 missonKey = ParserUtility.ReadString(reader);
                                 key = ParserUtility.ReadString(reader);
                                 prest -= (short)((gamecache.Length + 1) + (missonKey.Length + 1) + (key.Length + 1) + 1);
                                 break;
+                            //arrow
                             case 0x75:
                                 reader.ReadByte();
                                 prest -= 2;
                                 break;
+                            //Increase replay speed
+                            case 0x84:
+                                prest--;
+                                break;
+                            //Decrease replay speed
+                            case 0x85:
+                                prest--;
+                                break;
                             default:
-                                if (actionId == 0)
+                                /*if (actionId == 0)
                                 {
                                     prest--;
                                     byte[] bskipped = reader.ReadBytes(prest);
                                     prest = 0;
                                     Console.WriteLine("Warning: ActionID==0 found. Skipping remaining " + bskipped.Length + " bytes in the timeslot...");
                                 }
-                                else
-                                    continue; // bypasserror
-                                              //throw new W3gParserException("Unknown ActionID: " + actionId + " (0x"+actionId.ToString("X")+")");
-                                break;
+                                else*/
+                                prest--;
+                                continue; // bypasserror
+                                          //throw new W3gParserException("Unknown ActionID: " + actionId + " (0x"+actionId.ToString("X")+")");
+                                          //break;
                         }
                         if (actionId != 0x16) wasDeselect = false; // reset deselect state
                         #endregion
@@ -1389,6 +1491,7 @@ namespace Deerchao.War3Share.W3gParser
                     }
                 }
                 rest -= playerBlockRest;
+                reader.BaseStream.Seek(targetoffset, SeekOrigin.Begin);
             }
         }
 

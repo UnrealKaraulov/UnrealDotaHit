@@ -48,6 +48,13 @@ namespace Deerchao.War3Share.W3gParser
             heroes = new Heroes(cache);
         }
 
+        public Player(byte id, string name)
+        {
+            playerId = id;
+            slotNo = id;
+            Name = name;
+        }
+
         public byte Id
         {
             get { return playerId; }
