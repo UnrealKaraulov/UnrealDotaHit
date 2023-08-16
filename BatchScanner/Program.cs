@@ -22,6 +22,7 @@ namespace BatchScanner
             }
             finally
             {
+                Console.WriteLine("End scan!");
                 Console.ReadLine();
             }
         }
@@ -55,20 +56,20 @@ namespace BatchScanner
                     // This function also accepts a timeout in milliseconds
                     await semaphore.WaitAsync();
 
+                    try
+                    {
+                        Console.WriteLine("Start scan file:" + file);
+                    }
+                    catch
+                    {
+
+                    }
                     // Start a task
                     var task = System.Threading.Tasks.Task.Run( () =>
                     {
                         // Execute long running code
                         try
                         {
-                            try
-                            {
-                                Console.WriteLine("Start scan file:" + file);
-                            }
-                            catch
-                            {
-
-                            }
                             var process = Process.Start("DotaHit.exe", "\"" + file + "\" scan");
                             process.WaitForExit(60000);
                         }
