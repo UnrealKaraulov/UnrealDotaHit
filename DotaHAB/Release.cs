@@ -11,7 +11,7 @@ namespace DotaHIT
 {
     public class DHRELEASE
     {
-        public static string CurrentVersion { get { return "NEW v1.08"; } }
+        public static string CurrentVersion { get { return "NEW v1.08b"; } }
 
        
         public static bool TryGetUpdate(bool showSplash, bool notifyOnLatest, out string sfxPackageName)
