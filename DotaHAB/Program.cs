@@ -24,8 +24,9 @@ using DotaHIT.Extras;
 
 namespace DotaHIT
 {
-    static class Program
+    public static class Program
     {
+        public static bool SKIP_HEADER_CHECK = false;
         static void MapRequired(object sender, EventArgs e)
         {
             Replay replay = sender as Replay;
@@ -168,6 +169,7 @@ namespace DotaHIT
                             {
                                 if (args[1] == "scan" || args[1] == "scanner")
                                 {
+                                    SKIP_HEADER_CHECK = true;
                                     ReplayRawDataForm rawDataForm = new DotaHIT.Extras.Replay_Parser.ReplayRawDataForm();
                                     ParseSettings parseSettings = new ParseSettings();
                                     parseSettings.EmulateInventory = true;

@@ -14,6 +14,7 @@ using DotaHIT.Core;
 using System.Windows.Forms;
 using System.Globalization;
 using System.Diagnostics;
+using DotaHIT;
 
 namespace Deerchao.War3Share.W3gParser
 {
@@ -560,7 +561,7 @@ namespace Deerchao.War3Share.W3gParser
                             //    MessageBox.Show("Parse loadtimeslot mismatch:" + reader.BaseStream.Position + "/" + targetoffset);
                             //}
                             if (rest != 0)
-                            Console.WriteLine("seek from " + reader.BaseStream.Position + " to " + targetoffset + " data count:" + rest);
+                                Console.WriteLine("seek from " + reader.BaseStream.Position + " to " + targetoffset + " data count:" + rest);
                             else
                                 Console.WriteLine("seek from " + reader.BaseStream.Position + " to " + targetoffset + " empty");
                             reader.BaseStream.Seek(targetoffset, SeekOrigin.Begin);
@@ -571,7 +572,7 @@ namespace Deerchao.War3Share.W3gParser
                                     Console.WriteLine("Bad id: " + blockId.ToString("X") + "-" + prevId.ToString("X"));
                                 continue;
                             }//bypass error
-                                     //throw new W3gParserException("Unknown Block ID:" + blockId);
+                             //throw new W3gParserException("Unknown Block ID:" + blockId);
                     }
                 }
                 catch
@@ -1993,7 +1994,20 @@ namespace Deerchao.War3Share.W3gParser
 
                 #endregion
 
-                ValidateHeaderString(reader.ReadBytes(28));
+                bool force126a = false;
+
+                if (!ValidateHeaderString(reader.ReadBytes(28)))
+                {
+                    if (!Program.SKIP_HEADER_CHECK)
+                    {
+                        if (MessageBox.Show("BAD REPLAY HEADER, TRY PARSE FORCE AS 1.26a REPLAY?", "WARNING!", MessageBoxButtons.YesNo) == DialogResult.Yes)
+                        {
+                            force126a = true;
+                        }
+                    }
+                    else
+                        force126a = true;
+                }
 
                 int headerSize = reader.ReadInt32();
                 //overall size of compressed file
@@ -2004,6 +2018,9 @@ namespace Deerchao.War3Share.W3gParser
                 int nBlocks = reader.ReadInt32();
 
                 #endregion
+
+                if (force126a && versionFlag != 1)
+                    versionFlag = 1;
 
                 #region SubHeader
 
@@ -2035,7 +2052,7 @@ namespace Deerchao.War3Share.W3gParser
                     #endregion
 
                     string war3string = DHJassInt.int2id(reader.ReadUInt32()); //ParserUtility.StringFromUInt(reader.ReadUInt32());
-                    if (war3string != "W3XP")
+                    if (war3string != "W3XP" && !force126a)
                         throw new W3gParserException("本软件只支持冰封王座录像,不支持混乱之治录像.");
 
                     version = reader.ReadInt32();
@@ -2052,8 +2069,15 @@ namespace Deerchao.War3Share.W3gParser
 
                 #endregion
 
-                reader.BaseStream.Seek(headerSize, SeekOrigin.Begin);
-                for (int i = 0; i < nBlocks; i++)
+                if (!force126a)
+                    reader.BaseStream.Seek(headerSize, SeekOrigin.Begin);
+                else
+                {
+                    headerSize = 68;
+                    reader.BaseStream.Seek(68, SeekOrigin.Begin);
+                }
+
+                while (reader.BaseStream.Position < reader.BaseStream.Length)
                 {
                     #region [Data block header]
 
@@ -2086,6 +2110,7 @@ namespace Deerchao.War3Share.W3gParser
                     #endregion
                 }
             }
+
             blocksData.Seek(0, SeekOrigin.Begin);
 
             //Stream s= File.Create("replayDecoded.dta");
@@ -2532,13 +2557,14 @@ namespace Deerchao.War3Share.W3gParser
             return null;
         }
 
-        private void ValidateHeaderString(byte[] header)
+        private bool ValidateHeaderString(byte[] header)
         {
             for (int i = 0; i < 28; i++)
             {
                 if (HeaderString[i] != (char)header[i])
-                    throw new W3gParserException("指定的文件不是合法的Warcraft III Replay文件。");
+                    return false;
             }
+            return true;
         }
     }
 
